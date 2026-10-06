@@ -1,8 +1,21 @@
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
 
-async function bootstrap() {
+async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
-  await app.listen(process.env.PORT ?? 3000);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+  const config = app.get(ConfigService);
+  const porta = config.get<number>('PORT', 3000);
+  await app.listen(porta);
+  Logger.log(`API no ar em http:-/localhost:${porta}`, 'Bootstrap');
 }
-await bootstrap();
+
+void bootstrap();
